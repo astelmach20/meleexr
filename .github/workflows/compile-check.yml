@@ -1,0 +1,60 @@
+name: compile-check
+# Phase 0 baseline: how much of doldecomp/melee compiles natively against Aurora headers?
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        bits: [32, 64]
+    name: ${{ matrix.compiler }}-m${{ matrix.bits }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install toolchain
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q cmake ninja-build gcc-multilib g++-multilib clang
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_C_COMPILER=${{ matrix.compiler }} \
+            -DMELEEXR_M32=$([ "${{ matrix.bits }}" = 32 ] && echo ON || echo OFF)
+      - name: Build (keep going)
+        id: build
+        continue-on-error: true
+        run: ninja -C build -k 0 2>&1 | tee build.log
+      - name: Summarize
+        run: |
+          total=$(grep -c '^\[.*\] Building C object' build.log || true)
+          failed=$(grep -c '^FAILED: ' build.log || true)
+          ok=$((total - failed))
+          {
+            echo "## ${{ matrix.compiler }} -m${{ matrix.bits }}"
+            echo
+            echo "| TUs | compiled | failed |"
+            echo "|---|---|---|"
+            echo "| $total | $ok | $failed |"
+            echo
+            echo "### Top error messages"
+            echo '```'
+            grep -oE 'error: .*' build.log | sed -E "s/'[^']*'/'X'/g" | sort | uniq -c | sort -rn | head -25
+            echo '```'
+            echo
+            echo "### Failing files"
+            echo '```'
+            grep '^FAILED: ' build.log | sed -E 's/.*melee\.dir\///' | sort | head -80
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.compiler }}-m${{ matrix.bits }}
+          path: build.log

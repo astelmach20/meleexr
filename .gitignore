@@ -1,0 +1,6 @@
+build/
+.private/
+*.iso
+*.rvz
+*.gcm
+*.dol

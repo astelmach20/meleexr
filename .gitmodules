@@ -1,0 +1,8 @@
+[submodule "extern/melee"]
+	path = extern/melee
+	url = https://github.com/astelmach20/melee
+	branch = master
+[submodule "extern/aurora"]
+	path = extern/aurora
+	url = https://github.com/astelmach20/aurora
+	branch = melee-rebase
