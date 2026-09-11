@@ -59,6 +59,6 @@ ribbanya) · Dusklight team · the GC/Wii decompilation community.
 | target | failing TUs | notes |
 |---|---|---|
 | `-m32` | **0** | the decomp assumes ILP32; this is the real target |
-| `-m64` | 33 | `offsetof` static asserts on pointer-bearing structs (`ToyED8Data`, …) — inherent to 32-bit layouts |
+| `-m64` | **0** | layout `STATIC_ASSERT`s are only enforced when `sizeof(void*) == 4` (checked by the m32 cells) |
 
 Each matrix cell is gated by `ci/baseline/<compiler>-m<bits>`: the job fails if the count rises and warns when the baseline can be lowered. Header fixes live in the forks (`astelmach20/melee`, `astelmach20/aurora` branch `melee-rebase`) and are pulled in by bumping the submodules.
