@@ -51,3 +51,14 @@ ninja -C build -k 0
 
 doldecomp/melee contributors · [Aurora](https://github.com/encounter/aurora) (encounter, r-burns,
 ribbanya) · Dusklight team · the GC/Wii decompilation community.
+
+## Phase 0 status — compile check
+
+`compile-check.yml` builds all 986 decomp TUs (`melee/`, `sysdolphin/`) against Aurora's headers on gcc and clang.
+
+| target | failing TUs | notes |
+|---|---|---|
+| `-m32` | **0** | the decomp assumes ILP32; this is the real target |
+| `-m64` | 33 | `offsetof` static asserts on pointer-bearing structs (`ToyED8Data`, …) — inherent to 32-bit layouts |
+
+Each matrix cell is gated by `ci/baseline/<compiler>-m<bits>`: the job fails if the count rises and warns when the baseline can be lowered. Header fixes live in the forks (`astelmach20/melee`, `astelmach20/aurora` branch `melee-rebase`) and are pulled in by bumping the submodules.
