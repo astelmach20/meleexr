@@ -19,7 +19,8 @@ if (MELEEXR_M32)
     add_link_options(-m32)
 endif ()
 
-add_compile_definitions(TARGET_PC)
+# MELEE_DECOMP_COMPAT enables Aurora's arity shims for SDK-shaped GXSetArray/CARDInit calls.
+add_compile_definitions(TARGET_PC MELEE_DECOMP_COMPAT)
 
 # The font atlases (*.inc) are generated from game assets by the decomp's build and are
 # not in the tree. Phase 0 only needs the TUs to compile, so provide empty placeholders.
