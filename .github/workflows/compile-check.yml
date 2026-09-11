@@ -54,6 +54,19 @@ jobs:
             grep '^FAILED: ' build.log | sed -E 's/.*melee\.dir\///' | sort | head -80
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Regression gate
+        # Fail if this cell regresses past its recorded baseline; nag when it can be lowered.
+        run: |
+          failed=$(grep -c '^FAILED: ' build.log || true)
+          baseline=$(cat "ci/baseline/${{ matrix.compiler }}-m${{ matrix.bits }}")
+          echo "::notice title=${{ matrix.compiler }} -m${{ matrix.bits }}::$failed failing TUs (baseline $baseline)"
+          if [ "$failed" -gt "$baseline" ]; then
+            echo "::error::$failed failing TUs exceeds baseline $baseline"
+            exit 1
+          fi
+          if [ "$failed" -lt "$baseline" ]; then
+            echo "::warning::Down to $failed failing TUs - lower ci/baseline/${{ matrix.compiler }}-m${{ matrix.bits }} to lock it in"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: build-log-${{ matrix.compiler }}-m${{ matrix.bits }}
