@@ -20,10 +20,21 @@ if (MELEEXR_M32)
 endif ()
 
 add_compile_definitions(TARGET_PC)
+
+# The font atlases (*.inc) are generated from game assets by the decomp's build and are
+# not in the tree. Phase 0 only needs the TUs to compile, so provide empty placeholders.
+set(MELEEXR_GEN "${CMAKE_BINARY_DIR}/gen")
+foreach (inc sysdolphin/baselib/sislib_font.inc sysdolphin/baselib/debug_font.inc)
+    if (NOT EXISTS "${MELEE_SRC}/${inc}")
+        file(WRITE "${MELEEXR_GEN}/${inc}"
+             "/* meleexr: placeholder for generated font atlas (Phase 0, compile-only) */\n")
+    endif ()
+endforeach ()
 add_library(melee STATIC ${MELEE_SOURCES})
 target_include_directories(melee PRIVATE
     "${AURORA_SRC}/include"
-    "${MELEE_SRC}")
+    "${MELEE_SRC}"
+    "${MELEEXR_GEN}")
 target_compile_options(melee PRIVATE
     -std=gnu99 -fno-strict-aliasing -fwrapv -ffp-contract=off
     -Wno-everything -w)
